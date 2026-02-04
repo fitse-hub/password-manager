@@ -1,9 +1,8 @@
 FROM php:8.4-apache
 
-# Remove all MPM configs completely (CRITICAL FIX)
-RUN rm -f /etc/apache2/mods-enabled/mpm_* \
-    && rm -f /etc/apache2/mods-available/mpm_* \
-    && a2enmod mpm_prefork
+# Disable conflicting MPMs (prefork is already built-in)
+RUN a2dismod mpm_event || true \
+    && a2dismod mpm_worker || true
 
 # Enable required Apache modules
 RUN a2enmod rewrite headers
