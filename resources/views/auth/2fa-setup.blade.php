@@ -14,8 +14,10 @@
                 </p>
             </div>
 
-            <div class="flex justify-center">
-                <img src="{{ $qrCodeUrl }}" alt="QR Code" class="border-4 border-gray-200 rounded-lg">
+            <div class="flex justify-center bg-white p-6 rounded-lg border-2 border-gray-200">
+                <div class="qr-code-container">
+                    {!! $qrCodeSvg !!}
+                </div>
             </div>
 
             <div class="bg-gray-50 p-4 rounded-lg">

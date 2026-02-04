@@ -1,0 +1,88 @@
+# Railway Environment Variables Template
+# Copy these to Railway Dashboard → Your Service → Variables
+
+# ========================================
+# CRITICAL VARIABLES (MUST HAVE)
+# ========================================
+
+APP_NAME=Password Manager
+APP_ENV=production
+APP_DEBUG=false
+APP_KEY=base64:c68UgnIwR7Pv3WQmx1+e9qGCp493RjiPl5udHZ6IlgU=
+APP_URL=https://your-app.up.railway.app
+
+# ⚠️ IMPORTANT: Update APP_URL with your actual Railway domain!
+# Find it in: Railway Dashboard → Settings → Domains
+
+# ========================================
+# DATABASE VARIABLES (Railway MySQL)
+# ========================================
+
+DB_CONNECTION=mysql
+DB_HOST=${{MYSQLHOST}}
+DB_PORT=${{MYSQLPORT}}
+DB_DATABASE=${{MYSQLDATABASE}}
+DB_USERNAME=${{MYSQLUSER}}
+DB_PASSWORD=${{MYSQLPASSWORD}}
+
+# Note: Railway auto-fills ${{VARIABLE}} with actual values
+# Make sure you've added MySQL database to your Railway project first!
+
+# ========================================
+# SESSION & CACHE
+# ========================================
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+
+# ========================================
+# LOGGING
+# ========================================
+
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+
+# ========================================
+# EMAIL CONFIGURATION (Gmail SMTP)
+# ========================================
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=securevault.official@gmail.com
+MAIL_PASSWORD=bpomkmdszhhepzqu
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=securevault.official@gmail.com
+MAIL_FROM_NAME=Password Manager
+
+# ========================================
+# OPTIONAL VARIABLES
+# ========================================
+
+BCRYPT_ROUNDS=12
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+
+# ========================================
+# INSTRUCTIONS
+# ========================================
+
+# 1. Go to Railway Dashboard
+# 2. Select your service
+# 3. Click "Variables" tab
+# 4. Click "New Variable"
+# 5. Add each variable above (one at a time)
+# 6. Update APP_URL with your Railway domain
+# 7. Save and redeploy
+
+# ========================================
+# CRITICAL NOTES
+# ========================================
+
+# ⚠️ WITHOUT APP_KEY = BLANK PAGE!
+# ⚠️ Make sure MySQL database is added first
+# ⚠️ Update APP_URL to your Railway domain
+# ⚠️ Use ${{VARIABLE}} syntax for Railway database variables

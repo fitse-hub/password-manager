@@ -24,15 +24,28 @@ class TwoFactorAuthController extends Controller
         }
 
         $secret = $this->google2fa->generateSecretKey();
+        
+        // Generate QR Code URL for authenticator apps
         $qrCodeUrl = $this->google2fa->getQRCodeUrl(
             config('app.name'),
             $user->email,
             $secret
         );
 
+        // Generate QR Code as SVG
+        $writer = new \BaconQrCode\Writer(
+            new \BaconQrCode\Renderer\ImageRenderer(
+                new \BaconQrCode\Renderer\RendererStyle\RendererStyle(300),
+                new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+            )
+        );
+        
+        $qrCodeSvg = $writer->writeString($qrCodeUrl);
+
         return view('auth.2fa-setup', [
             'secret' => $secret,
             'qrCodeUrl' => $qrCodeUrl,
+            'qrCodeSvg' => $qrCodeSvg,
         ]);
     }
 
