@@ -1,11 +1,11 @@
 FROM php:8.4-apache
 
-# Disable all MPMs first (IMPORTANT)
-RUN a2dismod mpm_event || true \
-    && a2dismod mpm_worker || true \
+# Remove all MPM configs completely (CRITICAL FIX)
+RUN rm -f /etc/apache2/mods-enabled/mpm_* \
+    && rm -f /etc/apache2/mods-available/mpm_* \
     && a2enmod mpm_prefork
 
-# Enable Apache modules required by Laravel
+# Enable required Apache modules
 RUN a2enmod rewrite headers
 
 # Install system dependencies
@@ -36,10 +36,10 @@ RUN chown -R www-data:www-data /var/www/html \
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Laravel optimizations
+# Optimize Laravel
 RUN php artisan optimize || true
 
-# Set Apache document root to public
+# Set Apache document root to Laravel public folder
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf \
