@@ -1,54 +1,48 @@
-# Use PHP 8.4 with Apache
 FROM php:8.4-apache
 
-# Set working directory
-WORKDIR /var/www/html
+# Disable all MPMs first (IMPORTANT)
+RUN a2dismod mpm_event || true \
+    && a2dismod mpm_worker || true \
+    && a2enmod mpm_prefork
+
+# Enable Apache modules required by Laravel
+RUN a2enmod rewrite headers
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    libzip-dev \
     zip \
     unzip \
     git \
     curl \
-    libonig-dev \
-    libxml2-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
-
-# Enable Apache modules
-RUN a2enmod rewrite headers
+    && docker-php-ext-install pdo pdo_mysql gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy application files
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy Laravel project
 COPY . .
 
-# Copy custom Apache configuration
-COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
-
-# Set permissions
+# Fix permissions
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
 # Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader
 
-# Generate optimized autoload files
-RUN composer dump-autoload --optimize
+# Laravel optimizations
+RUN php artisan optimize || true
 
-# Set Apache document root to Laravel public folder
+# Set Apache document root to public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/sites-available/*.conf \
+    /etc/apache2/apache2.conf
 
-# Expose port 80
 EXPOSE 80
-
-# Start Apache
-CMD ["apache2-foreground"]
