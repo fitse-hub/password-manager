@@ -1,0 +1,83 @@
+version: "3.9"
+
+services:
+  # Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: password_manager_app
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=password_manager
+      - DB_USERNAME=laravel
+      - DB_PASSWORD=secret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./storage:/var/www/html/storage
+      - ./bootstrap/cache:/var/www/html/bootstrap/cache
+    networks:
+      - password_manager_network
+    command: >
+      bash -c "
+      php artisan config:cache &&
+      php artisan route:cache &&
+      php artisan view:cache &&
+      php artisan migrate --force &&
+      apache2-foreground
+      "
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: password_manager_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: password_manager
+      MYSQL_ROOT_PASSWORD: root_secret_password
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - password_manager_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # phpMyAdmin (Optional - for database management)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: password_manager_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: laravel
+      PMA_PASSWORD: secret
+    depends_on:
+      - mysql
+    networks:
+      - password_manager_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  password_manager_network:
+    driver: bridge
